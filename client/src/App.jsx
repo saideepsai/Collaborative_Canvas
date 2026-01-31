@@ -166,7 +166,7 @@ function App() {
     // Handle clear canvas
     const handleClear = () => {
         const confirmed = window.confirm(
-            'Clear your drawings? This action cannot be undone.'
+            'Clear ALL drawings for everyone? This action cannot be undone.'
         );
         if (confirmed) {
             emit.clearCanvas();

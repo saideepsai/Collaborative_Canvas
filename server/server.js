@@ -166,15 +166,17 @@ io.on('connection', (socket) => {
             return;
         }
 
-        // Clear the user's history
-        stateManager.clearUserHistory(roomId, socket.id);
+        // Clear the ENTIRE room history (global clear)
+        stateManager.clearHistory(roomId);
 
-        // Broadcast clear to all users in the room
+        // Broadcast clear to all users in the room (including sender)
+        // Sending userId: null tells clients to clear everything
         io.to(roomId).emit('clear-canvas', {
-            userId: socket.id,
+            userId: null,
+            triggeredBy: socket.id
         });
 
-        console.log(`[Server] User ${socket.id} cleared their drawings in room ${roomId}`);
+        console.log(`[Server] User ${socket.id} cleared ALL drawings in room ${roomId}`);
     });
 
     // Handle cursor movement events (for ghost cursors)
