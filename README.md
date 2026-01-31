@@ -156,7 +156,3 @@ This project fulfills the following requirements:
 **Canvas not updating:**
 - Check browser console for errors
 - Verify WebSocket connection status
-
-## 📄 License
-
-MIT
