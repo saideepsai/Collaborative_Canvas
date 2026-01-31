@@ -1,0 +1,62 @@
+/* UserList Styles */
+
+.user-list {
+    position: fixed;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+    z-index: 1000;
+    min-width: 150px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.user-list-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--text-primary);
+}
+
+.user-list-header svg {
+    color: var(--accent-primary);
+}
+
+.user-count {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+.connection-warning {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid var(--warning);
+    border-radius: var(--border-radius-sm);
+    color: var(--warning);
+    font-size: var(--font-size-sm);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.connection-warning svg {
+    flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .user-list {
+        top: auto;
+        bottom: var(--spacing-sm);
+        right: var(--spacing-sm);
+        padding: var(--spacing-sm);
+        min-width: auto;
+    }
+
+    .user-count {
+        font-size: 0.75rem;
+    }
+}

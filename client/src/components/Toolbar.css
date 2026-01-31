@@ -1,0 +1,214 @@
+/* Toolbar Styles */
+
+.toolbar {
+    position: fixed;
+    top: var(--spacing-lg);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    z-index: 1000;
+    max-width: 90vw;
+    /* overflow-x: auto; - Removed to allow popups to overflow */
+    animation: slideIn 0.3s ease-out;
+}
+
+.toolbar-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    min-width: fit-content;
+}
+
+.toolbar-actions {
+    flex-direction: row;
+}
+
+.toolbar-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.value-display {
+    color: var(--accent-primary);
+    font-weight: 600;
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--border-color);
+}
+
+/* Connection Status */
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    background: var(--bg-tertiary);
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    transition: all var(--transition-base);
+}
+
+.status-indicator.connected {
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.status-indicator.disconnected {
+    background: var(--error);
+}
+
+.status-text {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Color Picker */
+.color-picker-container {
+    position: relative;
+}
+
+.color-preview {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius-sm);
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-sm);
+}
+
+.color-preview:hover {
+    transform: scale(1.05);
+    border-color: var(--accent-primary);
+    box-shadow: var(--shadow-md);
+}
+
+.color-palette {
+    position: absolute;
+    top: calc(100% + var(--spacing-sm));
+    left: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 1001;
+    min-width: 200px;
+}
+
+.preset-colors {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.color-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--border-radius-sm);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    position: relative;
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+    border-color: var(--text-primary);
+}
+
+.color-swatch.active {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--bg-secondary), 0 0 0 4px var(--accent-primary);
+}
+
+.custom-color {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--border-color);
+}
+
+.color-hex {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+
+/* Brush Size */
+.brush-slider {
+    width: 150px;
+}
+
+.brush-presets {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.brush-preview {
+    border-radius: 50%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .toolbar {
+        top: var(--spacing-sm);
+        padding: var(--spacing-sm);
+        gap: var(--spacing-sm);
+        flex-wrap: wrap;
+    }
+
+    .toolbar-divider {
+        display: none;
+    }
+
+    .toolbar-section {
+        min-width: auto;
+    }
+
+    .brush-slider {
+        width: 100px;
+    }
+
+    .color-palette {
+        right: 0;
+        left: auto;
+    }
+
+    .preset-colors {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Scrollbar for toolbar overflow */
+.toolbar::-webkit-scrollbar {
+    height: 4px;
+}
+
+.toolbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.toolbar::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+}

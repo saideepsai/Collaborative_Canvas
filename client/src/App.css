@@ -1,0 +1,209 @@
+/* App Styles */
+
+.app {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Header */
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 999;
+    pointer-events: none;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    pointer-events: auto;
+}
+
+.logo svg {
+    color: var(--accent-primary);
+    filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5));
+}
+
+.logo h1 {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.room-badge {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+    pointer-events: auto;
+}
+
+.room-badge svg {
+    color: var(--accent-secondary);
+}
+
+/* Instructions */
+.instructions {
+    position: fixed;
+    bottom: var(--spacing-lg);
+    left: var(--spacing-lg);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+    max-width: 300px;
+    z-index: 1000;
+    animation: fadeIn 0.5s ease-out 1s both;
+}
+
+.instructions h3 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.instructions ul {
+    margin: 0;
+    padding-left: var(--spacing-lg);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.8;
+}
+
+.instructions li {
+    margin-bottom: var(--spacing-xs);
+}
+
+.instructions strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Connection Overlay */
+.connection-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 15, 30, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.connection-message {
+    padding: var(--spacing-xl);
+    border-radius: var(--border-radius-lg);
+    text-align: center;
+    max-width: 400px;
+    box-shadow: var(--shadow-lg);
+}
+
+.connection-message h2 {
+    margin: var(--spacing-md) 0 var(--spacing-sm) 0;
+    font-size: var(--font-size-xl);
+    color: var(--text-primary);
+}
+
+.connection-message p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-base);
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto;
+    border: 4px solid var(--bg-tertiary);
+    border-top-color: var(--accent-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .app-header {
+        padding: var(--spacing-sm);
+    }
+
+    .logo h1 {
+        font-size: var(--font-size-lg);
+    }
+
+    .room-badge {
+        font-size: 0.75rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    .instructions {
+        bottom: auto;
+        top: auto;
+        left: var(--spacing-sm);
+        right: var(--spacing-sm);
+        max-width: none;
+        font-size: 0.8125rem;
+        display: none;
+        /* Hide on mobile to save space */
+    }
+
+    .connection-message {
+        padding: var(--spacing-lg);
+        margin: var(--spacing-md);
+    }
+
+    .connection-message h2 {
+        font-size: var(--font-size-lg);
+    }
+}
+
+/* Tablet */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .instructions {
+        max-width: 250px;
+        font-size: 0.875rem;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .glass-effect {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+    }
+}
+
+/* Print styles */
+@media print {
+
+    .app-header,
+    .instructions,
+    .toolbar,
+    .user-list {
+        display: none !important;
+    }
+
+    .canvas-container {
+        background: white;
+    }
+}
