@@ -21,6 +21,7 @@ function App() {
 
     const [roomId] = useState(getRoomId());
     const [color, setColor] = useState('#6366f1');
+    const [tool, setTool] = useState('brush');
     const [backgroundColor, setBackgroundColor] = useState('#0f0f1e');
     const [lineWidth, setLineWidth] = useState(5);
     const [canUndo, setCanUndo] = useState(false);
@@ -63,35 +64,35 @@ function App() {
             setCanRedo(false);
         });
 
-        // Undo event
+        // Drawing progress from other users
+        on.drawingProgress((path) => {
+            if (canvasHandlersRef.current.onDrawingProgress) {
+                canvasHandlersRef.current.onDrawingProgress(path);
+            }
+        });
+
+        // Undo event - Global update
         on.undo((data) => {
             console.log('[App] Undo event received:', data);
 
             if (canvasHandlersRef.current.onUndo) {
                 console.log('[App] Calling canvas onUndo handler');
                 canvasHandlersRef.current.onUndo(data);
-            } else {
-                console.warn('[App] No onUndo handler found!');
             }
 
-            // Only update our own undo/redo state if this was our action
-            if (data.userId === socket?.id) {
-                console.log('[App] Updating button state - canUndo:', data.canUndo, 'canRedo:', data.canRedo);
-                setCanUndo(data.canUndo ?? false);
-                setCanRedo(data.canRedo ?? false);
-            }
+            // Always update undo/redo state as it is now global
+            setCanUndo(data.canUndo ?? false);
+            setCanRedo(data.canRedo ?? false);
         });
 
-        // Redo event
+        // Redo event - Global update
         on.redo((data) => {
             if (canvasHandlersRef.current.onRedo) {
                 canvasHandlersRef.current.onRedo(data);
             }
-            // Only update our own undo/redo state if this was our action
-            if (data.userId === socket?.id) {
-                setCanUndo(data.canUndo ?? false);
-                setCanRedo(data.canRedo ?? false);
-            }
+            // Always update state
+            setCanUndo(data.canUndo ?? false);
+            setCanRedo(data.canRedo ?? false);
         });
 
         // Clear event
@@ -141,10 +142,16 @@ function App() {
         emit.draw(path);
     }, [emit]);
 
+    // Handle drawing progress
+    const handleDrawingProgress = useCallback((path) => {
+        emit.drawingProgress(path);
+    }, [emit]);
+
     // Keep the emit handler updated in the ref
     useEffect(() => {
         canvasHandlersRef.current.emit = handleDraw;
-    }, [handleDraw]);
+        canvasHandlersRef.current.emitProgress = handleDrawingProgress;
+    }, [handleDraw, handleDrawingProgress]);
 
     // Handle undo
     const handleUndo = () => {
@@ -209,6 +216,7 @@ function App() {
 
             {/* Main Canvas */}
             <Canvas
+                tool={tool}
                 color={color}
                 backgroundColor={backgroundColor}
                 lineWidth={lineWidth}
@@ -224,6 +232,8 @@ function App() {
 
             {/* Toolbar */}
             <Toolbar
+                tool={tool}
+                onToolChange={setTool}
                 color={color}
                 onColorChange={setColor}
                 backgroundColor={backgroundColor}

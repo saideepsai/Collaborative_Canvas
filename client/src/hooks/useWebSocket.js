@@ -88,6 +88,12 @@ export function useWebSocket(roomId = 'default') {
             }
         });
 
+        socket.on('drawing-progress', (path) => {
+            if (eventHandlersRef.current.onDrawingProgress) {
+                eventHandlersRef.current.onDrawingProgress(path);
+            }
+        });
+
         socket.on('undo', (data) => {
             console.log('[WebSocket] Undo event:', data);
 
@@ -157,6 +163,12 @@ export function useWebSocket(roomId = 'default') {
                 socketRef.current.emit('cursor-move', { roomId, position, isDrawing });
             }
         },
+
+        drawingProgress: (path) => {
+            if (socketRef.current?.connected) {
+                socketRef.current.emit('drawing-progress', { roomId, path });
+            }
+        },
     };
 
     // Event listener registration
@@ -195,6 +207,10 @@ export function useWebSocket(roomId = 'default') {
 
         cursorMove: (handler) => {
             eventHandlersRef.current.onCursorMove = handler;
+        },
+
+        drawingProgress: (handler) => {
+            eventHandlersRef.current.onDrawingProgress = handler;
         },
     };
 

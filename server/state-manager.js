@@ -54,99 +54,61 @@ class StateManager {
     }
 
     /**
-     * Undo the last drawing action by a specific user
+     * Undo the last drawing action (global)
      * @param {string} roomId - Room identifier
-     * @param {string} userId - User identifier
      * @returns {Object|null} The undone path, or null if nothing to undo
      */
-    undo(roomId, userId) {
+    undo(roomId) {
         const room = this.rooms.get(roomId);
         if (!room || room.history.length === 0) {
             return null;
         }
 
-        // Find the last path drawn by this user (search from end)
-        let pathIndex = -1;
-        for (let i = room.history.length - 1; i >= 0; i--) {
-            if (room.history[i].userId === userId) {
-                pathIndex = i;
-                break;
-            }
-        }
-
-        // No paths found for this user
-        if (pathIndex === -1) {
-            console.log(`[StateManager] No paths to undo for user ${userId} in room ${roomId}`);
-            return null;
-        }
-
-        // Remove the path and add to undo stack
-        const path = room.history.splice(pathIndex, 1)[0];
+        // Global undo: remove the very last path added
+        const path = room.history.pop();
         room.undoStack.push(path);
 
-        console.log(`[StateManager] Undo by ${userId} in room ${roomId}. History: ${room.history.length}, Undo stack: ${room.undoStack.length}`);
+        console.log(`[StateManager] Global undo in room ${roomId}. History: ${room.history.length}, Undo stack: ${room.undoStack.length}`);
         return path;
     }
 
     /**
-     * Redo the last undone action by a specific user
+     * Redo the last undone action (global)
      * @param {string} roomId - Room identifier
-     * @param {string} userId - User identifier
      * @returns {Object|null} The redone path, or null if nothing to redo
      */
-    redo(roomId, userId) {
+    redo(roomId) {
         const room = this.rooms.get(roomId);
         if (!room || room.undoStack.length === 0) {
             return null;
         }
 
-        // Find the last undone path by this user (search from end)
-        let pathIndex = -1;
-        for (let i = room.undoStack.length - 1; i >= 0; i--) {
-            if (room.undoStack[i].userId === userId) {
-                pathIndex = i;
-                break;
-            }
-        }
-
-        // No undone paths found for this user
-        if (pathIndex === -1) {
-            console.log(`[StateManager] No paths to redo for user ${userId} in room ${roomId}`);
-            return null;
-        }
-
-        // Remove from undo stack and add back to history
-        const path = room.undoStack.splice(pathIndex, 1)[0];
+        // Global redo: restore the last path from undo stack
+        const path = room.undoStack.pop();
         room.history.push(path);
 
-        console.log(`[StateManager] Redo by ${userId} in room ${roomId}. History: ${room.history.length}, Undo stack: ${room.undoStack.length}`);
+        console.log(`[StateManager] Global redo in room ${roomId}. History: ${room.history.length}, Undo stack: ${room.undoStack.length}`);
         return path;
     }
 
     /**
-     * Check if a user can undo (has paths in history)
+     * Check if undo is possible
      * @param {string} roomId - Room identifier
-     * @param {string} userId - User identifier
      * @returns {boolean}
      */
-    canUserUndo(roomId, userId) {
+    canUndo(roomId) {
         const room = this.rooms.get(roomId);
-        if (!room) return false;
-
-        return room.history.some(path => path.userId === userId);
+        return room ? room.history.length > 0 : false;
     }
 
     /**
-     * Check if a user can redo (has paths in undo stack)
+     * Check if redo is possible
      * @param {string} roomId - Room identifier
-     * @param {string} userId - User identifier
      * @returns {boolean}
      */
-    canUserRedo(roomId, userId) {
+    canRedo(roomId) {
         const room = this.rooms.get(roomId);
-        if (!room) return false;
-
-        return room.undoStack.some(path => path.userId === userId);
+        return room ? room.undoStack.length > 0 : false;
     }
 
     /**

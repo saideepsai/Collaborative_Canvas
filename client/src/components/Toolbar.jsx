@@ -9,6 +9,8 @@ import './Toolbar.css';
 export default function Toolbar({
     color,
     onColorChange,
+    tool,
+    onToolChange,
     lineWidth,
     onLineWidthChange,
     onUndo,
@@ -145,6 +147,38 @@ export default function Toolbar({
 
             <div className="toolbar-divider" />
 
+            {/* Tools */}
+            <div className="toolbar-section">
+                <label className="toolbar-label">Tool</label>
+                <div className="tool-selector">
+                    <button
+                        className={`btn-icon ${tool === 'brush' ? 'active' : ''}`}
+                        onClick={() => onToolChange('brush')}
+                        title="Brush"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M9.06 11.9l8.07-8.069a2.05 2.05 0 0 1 2.9 2.9l-8.07 8.069a.5.5 0 0 1-.65.06l-2.091-1.42a.5.5 0 0 1-.06-.65z" />
+                            <path d="M6.17 14.89a.5.5 0 0 1 .65.06l2.09 1.42a.5.5 0 0 1 .06.65l-8.07 8.07a2.05 2.05 0 0 1-2.9-2.9l8.07-8.07z" />
+                            <path d="M14 19l3 3" />
+                            <path d="M9.5 14.5l3 3" />
+                        </svg>
+                    </button>
+                    <button
+                        className={`btn-icon ${tool === 'eraser' ? 'active' : ''}`}
+                        onClick={() => onToolChange('eraser')}
+                        title="Eraser"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M18 13l-5-5-5 5a2 2 0 0 0 0 2.828l2.172 2.172a2 2 0 0 0 2.828 0l2.172-2.172a2 2 0 0 0 0-2.828z" />
+                            <path d="M13 18l4 4" />
+                            <path d="M13 8l-4-4" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div className="toolbar-divider" />
+
             {/* Brush Size */}
             <div className="toolbar-section">
                 <label className="toolbar-label">
@@ -185,6 +219,7 @@ export default function Toolbar({
             {/* Actions */}
             <div className="toolbar-section toolbar-actions">
                 <button
+                    id="undo-button"
                     className="btn-icon"
                     onClick={onUndo}
                     disabled={!canUndo}
@@ -197,6 +232,7 @@ export default function Toolbar({
                 </button>
 
                 <button
+                    id="redo-button"
                     className="btn-icon"
                     onClick={onRedo}
                     disabled={!canRedo}
@@ -209,6 +245,7 @@ export default function Toolbar({
                 </button>
 
                 <button
+                    id="clear-button"
                     className="btn-icon"
                     onClick={onClear}
                     title="Clear canvas"

@@ -110,19 +110,22 @@ io.on('connection', (socket) => {
             return;
         }
 
-        // Perform undo operation for this specific user
-        const undonePath = stateManager.undo(roomId, socket.id);
+        // Perform global undo operation
+        const undonePath = stateManager.undo(roomId);
 
         if (undonePath) {
+            const canUndo = stateManager.canUndo(roomId);
+            const canRedo = stateManager.canRedo(roomId);
+
             // Broadcast undo to all users in the room
             io.to(roomId).emit('undo', {
                 pathId: undonePath.id,
-                userId: socket.id,
-                canUndo: stateManager.canUserUndo(roomId, socket.id),
-                canRedo: stateManager.canUserRedo(roomId, socket.id),
+                userId: socket.id, // Who triggered the undo
+                canUndo,
+                canRedo,
             });
 
-            console.log(`[Server] Undo by ${socket.id} in room ${roomId}`);
+            console.log(`[Server] Global undo by ${socket.id} in room ${roomId}`);
         }
     });
 
@@ -135,19 +138,22 @@ io.on('connection', (socket) => {
             return;
         }
 
-        // Perform redo operation for this specific user
-        const redonePath = stateManager.redo(roomId, socket.id);
+        // Perform global redo operation
+        const redonePath = stateManager.redo(roomId);
 
         if (redonePath) {
+            const canUndo = stateManager.canUndo(roomId);
+            const canRedo = stateManager.canRedo(roomId);
+
             // Broadcast redo to all users in the room
             io.to(roomId).emit('redo', {
                 path: redonePath,
-                userId: socket.id,
-                canUndo: stateManager.canUserUndo(roomId, socket.id),
-                canRedo: stateManager.canUserRedo(roomId, socket.id),
+                userId: socket.id, // Who triggered the redo
+                canUndo,
+                canRedo,
             });
 
-            console.log(`[Server] Redo by ${socket.id} in room ${roomId}`);
+            console.log(`[Server] Global redo by ${socket.id} in room ${roomId}`);
         }
     });
 
@@ -186,6 +192,25 @@ io.on('connection', (socket) => {
             position,
             isDrawing,
         });
+    });
+
+    // Handle real-time drawing progress
+    socket.on('drawing-progress', (data) => {
+        const { roomId = 'default', path } = data;
+
+        // Validate that user is in the room
+        if (!roomManager.isUserInRoom(socket.id, roomId)) {
+            return;
+        }
+
+        // Add user ID to the path
+        const pathWithUser = {
+            ...path,
+            userId: socket.id,
+        };
+
+        // Broadcast to other users in the room (not sender)
+        socket.to(roomId).emit('drawing-progress', pathWithUser);
     });
 
     // Handle disconnection

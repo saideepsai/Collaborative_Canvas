@@ -16,6 +16,7 @@ import Cursor from './Cursor';
 import './Canvas.css';
 
 export default function Canvas({
+    tool,
     color,
     lineWidth,
     onDraw,
@@ -33,6 +34,7 @@ export default function Canvas({
     const [currentPath, setCurrentPath] = useState(null);
     const [localCursor, setLocalCursor] = useState(null);
     const historyRef = useRef([]);
+    const livePathsRef = useRef({}); // Store in-progress paths from other users
 
     // Initialize canvas
     useEffect(() => {
@@ -57,6 +59,8 @@ export default function Canvas({
     }, []);
 
     // Redraw entire canvas from history
+    // This function handles both permanent history and active "live" paths from other users
+    // It correctly applies the "eraser" tool using composite operations
     const redrawCanvas = useCallback(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -68,8 +72,26 @@ export default function Canvas({
 
         // Draw all paths from history
         historyRef.current.forEach((path) => {
+            if (path.tool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+            }
             drawSmoothPath(ctx, path.points, path.color, path.lineWidth);
         });
+
+        // Draw live paths
+        Object.values(livePathsRef.current).forEach((path) => {
+            if (path.tool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+            }
+            drawSmoothPath(ctx, path.points, path.color, path.lineWidth);
+        });
+
+        // Reset composite operation
+        ctx.globalCompositeOperation = 'source-over';
     }, []);
 
     // Add path to history and redraw
@@ -86,15 +108,27 @@ export default function Canvas({
 
     // Handle receiving a new draw event
     const handleDrawEvent = useCallback((path) => {
+        // Remove from live paths if it exists (since it's now done)
+        if (path.userId && livePathsRef.current[path.userId]) {
+            delete livePathsRef.current[path.userId];
+        }
         addPathToHistory(path);
     }, [addPathToHistory]);
 
+    // Handle receiving drawing progress
+    const handleDrawingProgress = useCallback((path) => {
+        if (!path.userId) return;
+
+        // Safety: If this path is already in history, ignore the progress update
+        // This prevents race conditions where a late progress event resurrects a completed path
+        if (historyRef.current.some(p => p.id === path.id)) return;
+
+        livePathsRef.current[path.userId] = path;
+        redrawCanvas();
+    }, [redrawCanvas]);
+
     // Handle undo event - remove specific path by ID
     const handleUndoEvent = useCallback((data) => {
-        console.log('[Canvas] handleUndoEvent called with data:', data);
-        console.log('[Canvas] Current history length:', historyRef.current.length);
-        console.log('[Canvas] Current history:', historyRef.current.map(p => ({ id: p.id, userId: p.userId })));
-
         if (!data || !data.pathId) {
             console.warn('[Canvas] Undo event missing pathId');
             return;
@@ -107,11 +141,9 @@ export default function Canvas({
         console.log('[Canvas] Found at index:', pathIndex);
 
         if (pathIndex !== -1) {
-            const removedPath = historyRef.current.splice(pathIndex, 1)[0];
-            console.log('[Canvas] Removed path:', removedPath);
-            console.log(`[Canvas] Remaining paths: ${historyRef.current.length}`);
+            historyRef.current.splice(pathIndex, 1)[0];
             redrawCanvas();
-            console.log('[Canvas] Canvas redrawn');
+            console.log(`[Canvas] Undo active for path ${data.pathId}`);
         } else {
             console.warn(`[Canvas] Path ${data.pathId} not found in history`);
         }
@@ -150,12 +182,14 @@ export default function Canvas({
             console.log('[Canvas] Registering handlers on onDraw object');
             onDraw.onHistory = handleHistory;
             onDraw.onDraw = handleDrawEvent;
+            onDraw.onDrawingProgress = handleDrawingProgress;
             onDraw.onUndo = handleUndoEvent;
             onDraw.onRedo = handleRedoEvent;
             onDraw.onClear = handleClearEvent;
             console.log('[Canvas] Handlers registered:', {
                 onHistory: !!onDraw.onHistory,
                 onDraw: !!onDraw.onDraw,
+                onDrawingProgress: !!onDraw.onDrawingProgress,
                 onUndo: !!onDraw.onUndo,
                 onRedo: !!onDraw.onRedo,
                 onClear: !!onDraw.onClear,
@@ -163,7 +197,7 @@ export default function Canvas({
         } else {
             console.warn('[Canvas] onDraw prop is undefined!');
         }
-    }, [onDraw, handleHistory, handleDrawEvent, handleUndoEvent, handleRedoEvent, handleClearEvent]);
+    }, [onDraw, handleHistory, handleDrawEvent, handleDrawingProgress, handleUndoEvent, handleRedoEvent, handleClearEvent]);
 
     // Start drawing
     const startDrawing = useCallback((e) => {
@@ -177,11 +211,12 @@ export default function Canvas({
             points: [point],
             color,
             lineWidth,
+            tool,
         };
 
         setCurrentPath(newPath);
         setIsDrawing(true);
-    }, [color, lineWidth]);
+    }, [color, lineWidth, tool]);
 
     // Draw function (throttled)
     const drawThrottled = useCallback(
@@ -200,7 +235,22 @@ export default function Canvas({
 
             // Draw the current stroke in real-time
             const ctx = canvas.getContext('2d');
+
+            if (updatedPath.tool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+            }
+
             drawSmoothPath(ctx, updatedPath.points, updatedPath.color, updatedPath.lineWidth);
+
+            // Reset to default
+            ctx.globalCompositeOperation = 'source-over';
+
+            // Emit drawing progress
+            if (onDraw && onDraw.emitProgress) {
+                onDraw.emitProgress(updatedPath);
+            }
 
             // Emit cursor position for ghost cursors
             if (onCursorMove) {
@@ -211,7 +261,7 @@ export default function Canvas({
                 });
             }
         }, 16), // ~60fps
-        [isDrawing, currentPath, onCursorMove]
+        [isDrawing, currentPath, onCursorMove, onDraw]
     );
 
     // Main mouse move handler
@@ -228,17 +278,9 @@ export default function Canvas({
             e.preventDefault();
             drawThrottled(e, point);
         } else {
-            // Also emit cursor move when just hovering (optional, but good for "User: Me" tracking by others)
-            // But usually we throttle this too.
-            // For now, let's just update local state.
-
-            // If we want others to see our cursor even when not drawing:
-            if (onCursorMove) {
-                // Throttle this too in real app, but for now simple
-                // Actually, let's re-use the throttle mechanism or just leave it for drawing-only 
-                // if that was the original intent. The user request was "tag user:me should be moving".
-                // This implies local view.
-            }
+            // We could emit cursor movements here if we wanted to show the user's cursor
+            // to others even when not drawing. Currently, we only broadcast when drawing
+            // or implicitly via the hook's cursor tracking if enabled elsewhere.
         }
     }, [isDrawing, drawThrottled]);
 
