@@ -133,11 +133,7 @@ collaborative-canvas/
 - Use the undo/redo buttons to navigate through drawing history
 - History is synchronized across all users in the room
 
-## 🏗️ Architecture
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed technical documentation.
-
-## 📝 Assignment Requirements
 
 This project fulfills the following requirements:
 - ✅ HTML5 Canvas API implementation (no drawing libraries)
